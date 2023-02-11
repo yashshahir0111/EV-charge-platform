@@ -1,68 +1,119 @@
 //import logo from './logo.svg';
-import './App.css';
-import React, { Component, createRef } from "react";
-
+import "./App.css";
+import React from "react";
 import tt from "@tomtom-international/web-sdk-maps";
 import { services } from "@tomtom-international/web-sdk-services";
-
+import { useEffect, useState, useRef } from "react";
 import "@tomtom-international/web-sdk-maps/dist/maps.css";
 import "./App.css";
 
 const API_KEY = "ARGNxuIf5WZeTSJog2PYtRqNeB3OA5Su";
+const MAX_ZOOM = 100;
 //const SAN_FRANCISCO = [-122.4194, 37.7749];
-const SAN_FRANCISCO = [73.8567, 18.5204];
+const SAN_FRANCISCO = [18.613060791108524, 73.79245718289897];
 
+const App = () => {
+    const mapElement = useRef();
+    const [mapLongitude, setMapLongitude] = useState(73.8567);
+    const [mapLatitude, setMapLatitude] = useState(18.5204);
+    const [mapZoom, setMapZoom] = useState(17);
+    const [map, setMap] = useState({});
 
-/*
-function App() {
-  return (
-   <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-    
-   <h1>hello</h1>
-  );
-}*/
+    useEffect(() => {
+        let map = tt.map({
+            key: API_KEY,
+            container: mapElement.current,
+            center: [mapLongitude, mapLatitude],
+            zoom: mapZoom,
+        });
+        setMap(map);
+        return () => map.remove();
+    }, []);
+    function error(err) {
+        console.warn(`ERROR(${err.code}): ${err.message}`);
+    }
 
-export default class App extends Component {
-  constructor(props)
-  {
+    const [lat, setLat] = useState("");
+    const [long, setLong] = useState("");
+    const [locationState, setLocationState] = useState([]);
 
-    super(props);
-    this.mapRef = createRef();
-  }
-
-  componentDidMount()
-  {
-    this.map = tt.map({
-      key: API_KEY,
-      container: this.mapRef.current,
-      center: SAN_FRANCISCO,
-      zoom: 12
-    });
-  }
-
-  render()
-  {
-    return(
-      <div>
-         <div ref={this.mapRef} className="mapDiv"></div>
-      </div>
+    //getting location
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            setLat(position.coords.latitude);
+            setLong(position.coords.longitude);
+            map.setCenter([long, lat]);
+            new tt.Marker().setLngLat(map.getCenter()).addTo(map);
+        },
+        error,
+        { enableHighAccuracy: true, maximumAge: 0 },
     );
-  }
-}
 
-//export default App;
+    //check if allow location is blocked
+    useEffect(() => {
+        navigator.permissions
+            .query({
+                name: "geolocation",
+            })
+            .then((result) => {
+                setLocationState(result.state);
+            });
+    }, [locationState]);
+
+    useEffect(() => {
+        navigator.permissions
+            .query({
+                name: "geolocation",
+            })
+            .then((result) => {
+                setLocationState(result.state);
+            });
+    }, []);
+    // console.log(lat, long);
+    const handleSearchChange = (event) => {
+        setSearch(event.target.value);
+    };
+
+    const [data, setData] = useState(null);
+    const [err, setErr] = useState(null);
+    const [search, setSearch] = useState("");
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if (search !== "" || search !== null || search !== undefined) {
+                try {
+                    const response = await fetch(
+                        `https://api.tomtom.com/search/2/geocode/${search}.json?key=` +
+                            API_KEY,
+                    );
+                    const json = await response.json();
+                    setData(json);
+                } catch (error) {
+                    setErr(error);
+                }
+            } else {
+                console.log("no data");
+            }
+            map.setCenter(data.results[0].position);
+        };
+
+        fetchData();
+    }, [handleSearchChange]);
+
+    // console.log(data);
+    return (
+        <>
+            <input
+                type="text"
+                name="search"
+                id="search"
+                value={search}
+                onChange={handleSearchChange}
+                placeholder="Enter place to search..."
+            />
+            <div ref={mapElement} className="mapDiv"></div>
+        </>
+    );
+};
+
+export default App;
