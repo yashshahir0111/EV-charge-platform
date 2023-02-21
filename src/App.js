@@ -1,119 +1,198 @@
-//import logo from './logo.svg';
-import "./App.css";
-import React from "react";
-import tt from "@tomtom-international/web-sdk-maps";
-import { services } from "@tomtom-international/web-sdk-services";
-import { useEffect, useState, useRef } from "react";
-import "@tomtom-international/web-sdk-maps/dist/maps.css";
-import "./App.css";
+import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import { useEffect, useState } from "react";
 
-const API_KEY = "ARGNxuIf5WZeTSJog2PYtRqNeB3OA5Su";
-const MAX_ZOOM = 100;
-//const SAN_FRANCISCO = [-122.4194, 37.7749];
-const SAN_FRANCISCO = [18.613060791108524, 73.79245718289897];
-
-const App = () => {
-    const mapElement = useRef();
-    const [mapLongitude, setMapLongitude] = useState(73.8567);
-    const [mapLatitude, setMapLatitude] = useState(18.5204);
-    const [mapZoom, setMapZoom] = useState(17);
-    const [map, setMap] = useState({});
-
-    useEffect(() => {
-        let map = tt.map({
-            key: API_KEY,
-            container: mapElement.current,
-            center: [mapLongitude, mapLatitude],
-            zoom: mapZoom,
-        });
-        setMap(map);
-        return () => map.remove();
-    }, []);
-    function error(err) {
-        console.warn(`ERROR(${err.code}): ${err.message}`);
-    }
-
-    const [lat, setLat] = useState("");
-    const [long, setLong] = useState("");
-    const [locationState, setLocationState] = useState([]);
-
-    //getting location
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            setLat(position.coords.latitude);
-            setLong(position.coords.longitude);
-            map.setCenter([long, lat]);
-            new tt.Marker().setLngLat(map.getCenter()).addTo(map);
-        },
-        error,
-        { enableHighAccuracy: true, maximumAge: 0 },
-    );
-
-    //check if allow location is blocked
-    useEffect(() => {
-        navigator.permissions
-            .query({
-                name: "geolocation",
-            })
-            .then((result) => {
-                setLocationState(result.state);
-            });
-    }, [locationState]);
-
-    useEffect(() => {
-        navigator.permissions
-            .query({
-                name: "geolocation",
-            })
-            .then((result) => {
-                setLocationState(result.state);
-            });
-    }, []);
-    // console.log(lat, long);
-    const handleSearchChange = (event) => {
-        setSearch(event.target.value);
-    };
-
-    const [data, setData] = useState(null);
-    const [err, setErr] = useState(null);
-    const [search, setSearch] = useState("");
-
-    useEffect(() => {
-        const fetchData = async () => {
-            if (search !== "" || search !== null || search !== undefined) {
-                try {
-                    const response = await fetch(
-                        `https://api.tomtom.com/search/2/geocode/${search}.json?key=` +
-                            API_KEY,
-                    );
-                    const json = await response.json();
-                    setData(json);
-                } catch (error) {
-                    setErr(error);
-                }
-            } else {
-                console.log("no data");
-            }
-            map.setCenter(data.results[0].position);
-        };
-
-        fetchData();
-    }, [handleSearchChange]);
-
-    // console.log(data);
-    return (
-        <>
-            <input
-                type="text"
-                name="search"
-                id="search"
-                value={search}
-                onChange={handleSearchChange}
-                placeholder="Enter place to search..."
-            />
-            <div ref={mapElement} className="mapDiv"></div>
-        </>
-    );
+const mapContainerStyle = {
+    width: "100vw",
+    height: "100vh",
 };
 
-export default App;
+const options = {
+    disableDefaultUI: false,
+    zoomControl: true,
+};
+
+function Map() {
+    const [center, setCenter] = useState({ lat: 0, lng: 0 });
+    const [userLocation, setUserLocation] = useState(null);
+    const [markers, setMarkers] = useState([]);
+    const [map, setMap] = useState(null);
+
+    const { isLoaded, loadError } = useLoadScript({
+        id: "google-map-script",
+        googleMapsApiKey: "AIzaSyBl-1-PGa4XPEK6kErLLbOAlrKmhFXgHL4",
+        libraries: ["places"],
+    });
+
+    // useEffect(() => {
+    //     if (isLoaded && userLocation) {
+    //         const service = new window.google.maps.places.PlacesService(map);
+    //         service.nearbySearch(
+    //             {
+    //                 location: userLocation,
+    //                 radius: 50000,
+    //                 type: ["ev_station"],
+    //             },
+    //             (results, status) => {
+    //                 if (
+    //                     status ===
+    //                     window.google.maps.places.PlacesServiceStatus.OK
+    //                 ) {
+    //                     setMarkers(results);
+    //                 }
+    //             },
+    //         );
+    //     }
+    // }, [isLoaded, userLocation, map]);
+
+    useEffect(() => {
+        if (!isLoaded) return;
+
+        const service = new window.google.maps.places.PlacesService(
+            document.createElement("div"),
+        );
+        service.nearbySearch(
+            {
+                location: userLocation,
+                radius: 4000, // search within 1km
+                keyword: [
+                    "charging station",
+                    "ev charging station",
+                    "ev station",
+                    "ev charger",
+                    "ev charging",
+                    "ev charging station near me",
+                    "ev charging station near me",
+                    "ev station near me",
+                    "ev charger near me",
+                    "ev charging near me",
+                    "ev charging station nearby",
+                    "ev charging station nearby",
+                    "ev station nearby",
+                    "ev charger nearby",
+                    "ev charging nearby",
+                    "ev charging station close by",
+                    "ev charging station close by",
+                    "ev station close by",
+                    "ev charger close by",
+                    "ev charging close by",
+                    "ev charging station close to me",
+                    "ev charging station close to me",
+                    "ev station close to me",
+                    "ev charger close to me",
+                    "ev charging close to me",
+                    "ev charging station close",
+                    "ev charging station close",
+                    "ev station close",
+                    "ev charger close",
+                    "ev charging close",
+                    "ev charging station nearby me",
+                    "ev charging station nearby me",
+                    "ev station nearby me",
+                    "ev charger nearby me",
+                    "ev charging nearby me",
+                    "ev charging station close by me",
+                    "ev charging station close by me",
+                    "ev station close by me",
+                    "ev charger close by me",
+                    "ev charging close by me",
+                    "ev charging station close to",
+                    "ev charging station close to",
+                    "ev station close to",
+                    "ev charger close to",
+                    "ev charging close to",
+                    "ev charging station close by to me",
+                    "ev charging station close by to me",
+                    "ev station close by to me",
+                    "ev charger close by to me",
+                    "ev charging close by to me",
+                    "ev charging station close by to",
+                    "ev charging station close by to",
+                    "ev station close by to",
+                    "ev charger close by to",
+                    "ev charging close by to",
+                    "ev charging station close to by me",
+                    "ev charging station close to by me",
+                    "ev station close to by me",
+                    "ev charger close to by me",
+                    "ev charging close to by me",
+                    "ev charging station close to by",
+                    "ev charging station close to by",
+                    "ev station close to by",
+                    "ev charger close to by",
+                    "ev charging close to by",
+                    "ev charging station close by to by me",
+                    "ev charging station close by to by me",
+                    "ev station close by to by me",
+                    "ev charger close by to by me",
+                    "ev charging close by to by me",
+                    "ev charging station close by to by",
+                    "ev charging station close by to by",
+                    "ev station close by to by",
+                    "ev charger close by",
+                    "ev charging close by",
+                    "ev charging station close to by",
+                ],
+                type: ["establishment"],
+            },
+            (results, status) => {
+                if (status === "OK") {
+                    setMarkers(results);
+                }
+            },
+        );
+    }, [isLoaded, userLocation, map]);
+
+    useEffect(() => {
+        const getUserLocation = async () => {
+            try {
+                const {
+                    coords: { latitude, longitude },
+                } = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        timeout: 5000,
+                        maximumAge: 5000,
+                        enableHighAccuracy: true,
+                    });
+                });
+                setCenter({ lat: latitude, lng: longitude });
+                setUserLocation({ lat: latitude, lng: longitude });
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        getUserLocation();
+    }, []);
+
+    if (loadError) return "Error loading maps";
+    if (!isLoaded) return "Loading maps";
+
+    return (
+        <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            zoom={17}
+            center={center}
+            options={options}
+        >
+            {console.log(markers)}
+            {userLocation && (
+                <Marker
+                    position={userLocation}
+                    icon={
+                        "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+                    }
+                />
+            )}
+            {markers.map((marker) => (
+                <Marker
+                    key={marker.place_id}
+                    position={marker.geometry.location}
+                    label={marker.name}
+                    title={marker.name}
+                />
+            ))}
+        </GoogleMap>
+    );
+}
+
+export default Map;
