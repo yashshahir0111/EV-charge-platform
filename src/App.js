@@ -7,6 +7,7 @@ import {
     IconButton,
     Input,
     Text,
+    Select,
 } from "@chakra-ui/react";
 import { FaLocationArrow, FaTimes } from "react-icons/fa";
 
@@ -37,6 +38,7 @@ function Map() {
     const [directionsResponse, setDirectionsResponse] = useState(null);
     const [distance, setDistance] = useState("");
     const [duration, setDuration] = useState("");
+    const [vehicleNumber, setVehicleNumber] = useState("");
 
     const { isLoaded, loadError } = useLoadScript({
         id: "google-map-script",
@@ -68,6 +70,7 @@ function Map() {
         document.cookie = `duration=${results.routes[0].legs[0].duration.text}`;
         document.cookie = `lat=${results.routes[0].legs[0].end_location.lat()}`;
         document.cookie = `lng=${results.routes[0].legs[0].end_location.lng()}`;
+        document.cookie = `vehicleNumber=${vehicleNumber}`;
     }
 
     function clearRoute() {
@@ -238,7 +241,7 @@ function Map() {
                             label={marker.name}
                             title={marker.name}
                             onClick={() => {
-                                alert(document.cookie);
+                                alert(document.cookie + "\n");
                             }}
                         />
                     ))}
@@ -263,6 +266,22 @@ function Map() {
                                 w={500}
                             />
                         </Autocomplete>
+                    </Box>
+                    <Box>
+                        <Input
+                            type="text"
+                            placeholder="Vehicle Number"
+                            value={vehicleNumber}
+                            onChange={(e) => {
+                                setVehicleNumber(e.target.value);
+                            }}
+                        />
+                    </Box>
+                    <Box>
+                        <Select>
+                            <option value="two">Two Wheeler</option>
+                            <option value="four">Four Wheeler</option>
+                        </Select>
                     </Box>
 
                     <ButtonGroup>
