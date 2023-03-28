@@ -112,17 +112,8 @@ function Map() {
         //     console.log(error);
         // }
         alert(
-            vehicleNumber +
-                " " +
-                vehicleType +
-                " " +
-                slotTime +
-                " " +
-                distance +
-                " " +
-                duration +
-                " " +
-                email,
+            "Your slot has been booked successfully!! at: " +
+                destiantionRef.current.value,
         );
     }
 
