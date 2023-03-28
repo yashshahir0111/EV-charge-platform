@@ -80,6 +80,7 @@ function Map() {
             rnumber: vehicleNumber,
             station: destiantionRef.current.value,
             vehicleType: vehicleType,
+            email: email,
         };
         try {
             const response = await fetch("http://localhost:4000/send-data", {
@@ -96,6 +97,20 @@ function Map() {
         } catch (error) {
             console.error(error);
         }
+        // try {
+        //     const response = await fetch("http://localhost:4000/send-email", {
+        //         method: "POST",
+        //         headers: {
+        //             "Content-Type": "application/json",
+        //         },
+        //         body: JSON.stringify(data),
+        //     });
+        //     if (!response.ok) {
+        //         throw new Error("Failed to submit form");
+        //     }
+        // } catch (error) {
+        //     console.log(error);
+        // }
         alert(
             vehicleNumber +
                 " " +
@@ -107,7 +122,7 @@ function Map() {
                 " " +
                 duration +
                 " " +
-                destiantionRef.current.value,
+                email,
         );
     }
 
@@ -146,6 +161,7 @@ function Map() {
             const result = await fetch("http://localhost:4000/get-data");
             const body = await result.json();
             setData(body);
+            console.log(data);
         };
         fetchData();
     }, []);
@@ -345,7 +361,7 @@ function Map() {
                             onChange={(e) => {
                                 setSlotTime(e.target.value);
                             }}
-                            // w={20}
+                            w={20}
                         />
                         <Input
                             type="text"
@@ -367,7 +383,7 @@ function Map() {
                             <option value="four wheeler">Four Wheeler</option>
                         </Select>
                     </Box>
-                    <Box>
+                    {/* <Box>
                         <Input
                             type="email"
                             placeholder="Enter your Email"
@@ -376,7 +392,7 @@ function Map() {
                                 setEmail(e.target.value);
                             }}
                         />
-                    </Box>
+                    </Box> */}
 
                     <ButtonGroup>
                         <Button

@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const connection = require("./connection");
+const nodemailer = require("nodemailer");
 
 var duration;
 var slotTime;
@@ -64,7 +65,7 @@ app.get("/get-data", (req, res) => {
             if (err) {
                 console.log(err);
             } else {
-                res.send(result);
+                console.log(result);
             }
         },
     );
@@ -97,6 +98,34 @@ app.post("/delete-data", (req, res) => {
         },
     );
 });
+
+// app.post("/send-email", async (req, res) => {
+//     const data = req.body;
+//     const transporter = nodemailer.createTransport({
+//         host: "smtp.gmail.com",
+//         port: 587,
+//         secure: false,
+//         auth: {
+//             user: "evcharge4@gmail.com",
+//             pass: "evcharge@123",
+//         },
+//     });
+//     const mailOptions = {
+//         from: "evcharge4@gmail.com",
+//         to: data.email,
+//         subject: "Your EV Charge Slot has been booked",
+//         text: `Your EV Charge Slot has been booked at ${data.station} for ${data.slotTime} minutes. Your vehicle number is ${data.rnumber}`,
+//     };
+
+//     try {
+//         const info = await transporter.sendMail(mailOptions);
+//         console.log("Message sent: %s", info.messageId);
+//         res.status(200).send("Email sent successfully");
+//     } catch (err) {
+//         console.log(err);
+//         res.status(500).send("Failed to send email");
+//     }
+// });
 
 app.listen(4000, () => {
     console.log("Server started on port 4000");
