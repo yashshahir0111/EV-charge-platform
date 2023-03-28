@@ -20,6 +20,7 @@ import {
     DirectionsRenderer,
 } from "@react-google-maps/api";
 import { useEffect, useState, useRef } from "react";
+import emailjs from "@emailjs/browser";
 
 const mapContainerStyle = {
     width: "100vw",
@@ -44,6 +45,7 @@ function Map() {
     const [vehicleType, setVehicleType] = useState("two wheeler");
     const [data, setData] = useState([]);
     const [deleteVehicle, setDeleteVehicle] = useState("");
+    const [email, setEmail] = useState("");
 
     const { isLoaded, loadError } = useLoadScript({
         id: "google-map-script",
@@ -58,6 +60,7 @@ function Map() {
 
     async function calculateRoute(event) {
         event.preventDefault();
+
         if (userLocation === "" || destiantionRef.current.value === "") {
             return;
         }
@@ -115,6 +118,30 @@ function Map() {
                 destiantionRef.current.value,
         );
         await fetchData();
+        const templateParams = {
+            user_name: "EV Charge",
+            to_name: vehicleNumber,
+            message:
+                "You have booked a slot at: " + destiantionRef.current.value,
+            user_email: email,
+            subject: "booking successful",
+        };
+
+        emailjs
+            .send(
+                "service_dmtnbg9",
+                "template_7h3v4dd",
+                templateParams,
+                "sl0TXfhhu70fdRK8M",
+            )
+            .then(
+                (result) => {
+                    console.log(result.text);
+                },
+                (error) => {
+                    console.log(error.text);
+                },
+            );
     }
 
     useEffect(() => {
@@ -374,16 +401,18 @@ function Map() {
                             <option value="four wheeler">Four Wheeler</option>
                         </Select>
                     </Box>
-                    {/* <Box>
+
+                    <Box>
                         <Input
                             type="email"
                             placeholder="Enter your Email"
+                            name="user_email"
                             value={email}
                             onChange={(e) => {
                                 setEmail(e.target.value);
                             }}
                         />
-                    </Box> */}
+                    </Box>
 
                     <ButtonGroup>
                         <Button
@@ -434,7 +463,7 @@ function Map() {
                 top={0}
                 right={0}
                 height="100vh"
-                width={200}
+                width={150}
                 backgroundColor="white"
                 boxShadow="base"
                 padding={4}
