@@ -4,6 +4,7 @@ import {
     ButtonGroup,
     Flex,
     HStack,
+    VStack,
     IconButton,
     Input,
     Text,
@@ -22,7 +23,7 @@ import { useEffect, useState, useRef } from "react";
 
 const mapContainerStyle = {
     width: "100vw",
-    height: "100vh",
+    height: "100%",
 };
 
 const options = {
@@ -43,7 +44,6 @@ function Map() {
     const [vehicleType, setVehicleType] = useState("two wheeler");
     const [data, setData] = useState([]);
     const [deleteVehicle, setDeleteVehicle] = useState("");
-    const [email, setEmail] = useState("");
 
     const { isLoaded, loadError } = useLoadScript({
         id: "google-map-script",
@@ -80,7 +80,6 @@ function Map() {
             rnumber: vehicleNumber,
             station: destiantionRef.current.value,
             vehicleType: vehicleType,
-            email: email,
         };
         try {
             const response = await fetch("http://localhost:4000/send-data", {
@@ -115,7 +114,18 @@ function Map() {
             "Your slot has been booked successfully!! at: " +
                 destiantionRef.current.value,
         );
+        await fetchData();
     }
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        const result = await fetch("http://localhost:4000/get-data");
+        const body = await result.json();
+        setData(body);
+    };
 
     function clearRoute() {
         setDirectionsResponse(null);
@@ -146,16 +156,6 @@ function Map() {
         }
         alert(deleteVehicle);
     }
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const result = await fetch("http://localhost:4000/get-data");
-            const body = await result.json();
-            setData(body);
-            console.log(data);
-        };
-        fetchData();
-    }, []);
 
     useEffect(() => {
         if (!isLoaded) return;
@@ -428,6 +428,22 @@ function Map() {
                         </Button>
                     </HStack>
                 </Box>
+            </Box>
+            <Box
+                position="absolute"
+                top={0}
+                right={0}
+                height="100vh"
+                width={200}
+                backgroundColor="white"
+                boxShadow="base"
+                padding={4}
+            >
+                <VStack>
+                    {data.map((item) => (
+                        <Text key={item.Rnumber}>{item.Rnumber}</Text>
+                    ))}
+                </VStack>
             </Box>
         </Flex>
     );

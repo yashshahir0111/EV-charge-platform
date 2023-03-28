@@ -66,6 +66,7 @@ app.get("/get-data", (req, res) => {
                 console.log(err);
             } else {
                 console.log(result);
+                res.json(result);
             }
         },
     );
