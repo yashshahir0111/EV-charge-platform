@@ -344,7 +344,10 @@ function Map() {
                             label={marker.name}
                             title={marker.name}
                             onClick={() => {
-                                alert(document.cookie + "\n");
+                                let a =
+                                    "https://maps.googleapis.com/maps/api/geocode/json?latlng=${marker.geometry.location}&key=${AIzaSyBl-1-PGa4XPEK6kErLLbOAlrKmhFXgHL4}";
+
+                                alert(marker.geometry.location + "\n" + a);
                             }}
                         />
                     ))}
