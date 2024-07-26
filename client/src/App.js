@@ -309,14 +309,11 @@ function Map() {
     if (!isLoaded) return "Loading maps";
 
     return (
-        <Flex
-            position="relative"
-            flexDirection="column"
-            alignItems="center"
-            h="100vh"
-            w="100vw"
-        >
-            <Box position="absolute" left={0} top={0} h="100%" w="100%">
+        <div className="relative flex flex-col items-center h-screen w-screen pr-40">
+            <div
+                className="absolute left-0 top-0 h-full w-[calc(100%-10rem)]"
+                id="map-container"
+            >
                 {/* Google Map Box */}
                 <GoogleMap
                     center={center}
@@ -352,132 +349,131 @@ function Map() {
                         />
                     ))}
                 </GoogleMap>
-            </Box>
-            <Box
-                p={4}
-                borderRadius="lg"
-                m={4}
-                bgColor="white"
-                shadow="base"
-                minW="container.md"
-                zIndex="1"
-            >
-                <HStack spacing={2} justifyContent="space-between">
-                    <Box>
+            </div>
+            <div className="p-4 rounded-lg m-4 bg-white shadow-md min-w-[768px] z-10">
+                <div className="flex justify-between items-center space-x-2">
+                    <div className="flex-grow">
                         <Autocomplete>
-                            <Input
+                            <input
                                 type="text"
+                                id="destination"
                                 placeholder="Destination"
-                                ref={destiantionRef}
-                                w={500}
-                                h={20}
+                                className="w-full px-3 py-2 border rounded-md"
                             />
                         </Autocomplete>
-                    </Box>
-                    <Box>
-                        <Input
+                    </div>
+                    <div className="flex space-x-2">
+                        <input
                             type="text"
+                            id="slotTime"
                             placeholder="Slot Time (Hours)"
-                            value={slotTime}
-                            onChange={(e) => {
-                                setSlotTime(e.target.value);
-                            }}
-                            w={20}
+                            className="px-3 py-2 border rounded-md"
                         />
-                        <Input
+                        <input
                             type="text"
+                            id="vehicleNumber"
                             placeholder="Vehicle Number"
-                            value={vehicleNumber}
-                            onChange={(e) => {
-                                setVehicleNumber(e.target.value);
-                            }}
+                            className="px-3 py-2 border rounded-md"
                         />
-                    </Box>
-                    <Box>
-                        <Select
-                            value={vehicleType}
-                            onChange={(e) => {
-                                setVehicleType(e.target.value);
-                            }}
+                    </div>
+                    <div>
+                        <select
+                            id="vehicleType"
+                            className="px-3 py-2 border rounded-md"
                         >
                             <option value="two wheeler">Two Wheeler</option>
                             <option value="four wheeler">Four Wheeler</option>
-                        </Select>
-                    </Box>
-
-                    <Box>
-                        <Input
+                        </select>
+                    </div>
+                    <div>
+                        <input
                             type="email"
+                            id="userEmail"
                             placeholder="Enter your Email"
-                            name="user_email"
-                            value={email}
-                            onChange={(e) => {
-                                setEmail(e.target.value);
-                            }}
+                            className="px-3 py-2 border rounded-md"
                         />
-                    </Box>
-
-                    <ButtonGroup>
-                        <Button
-                            colorScheme="pink"
-                            type="submit"
-                            onClick={calculateRoute}
+                    </div>
+                    <div className="flex space-x-2">
+                        <button
+                            id="calculateRoute"
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md"
                         >
                             Calculate Route
-                        </Button>
-                        <IconButton
-                            aria-label="center back"
-                            icon={<FaTimes />}
-                            onClick={clearRoute}
-                        />
-                    </ButtonGroup>
-                </HStack>
-                <HStack spacing={4} mt={4} justifyContent="space-between">
-                    <Text>Distance: {distance} </Text>
-                    <Text>Duration: {duration} </Text>
-                    <IconButton
-                        aria-label="center back"
-                        icon={<FaLocationArrow />}
-                        isRound
-                        onClick={() => {
-                            map.panTo(center);
-                            map.setZoom(15);
-                        }}
-                    />
-                </HStack>
-                <Box>
-                    <HStack spacing={4} mt={4} justifyContent="space-between">
-                        <Input
+                        </button>
+                        <button
+                            id="clearRoute"
+                            className="p-2 bg-gray-200 rounded-full"
+                        >
+                            <svg
+                                className="w-5 h-5"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clip-rule="evenodd"
+                                ></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div className="flex justify-between items-center mt-4">
+                    <span id="distance">Distance: </span>
+                    <span id="duration">Duration: </span>
+                    <button
+                        id="centerMap"
+                        className="p-2 bg-blue-500 text-white rounded-full"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                clip-rule="evenodd"
+                            ></path>
+                        </svg>
+                    </button>
+                </div>
+                <div className="mt-4">
+                    <div className="flex justify-between items-center space-x-2">
+                        <input
                             type="text"
-                            placeholder="Delete a entry"
-                            value={deleteVehicle}
-                            onChange={(e) => {
-                                setDeleteVehicle(e.target.value);
-                            }}
+                            id="deleteVehicle"
+                            placeholder="Delete an entry"
+                            className="flex-grow px-3 py-2 border rounded-md"
                         />
-                        <Button onClick={deleteVehicleData}>
+                        <button
+                            id="deleteVehicleBtn"
+                            className="px-4 py-2 bg-red-500 text-white rounded-md"
+                        >
                             Delete Vehicle
-                        </Button>
-                    </HStack>
-                </Box>
-            </Box>
-            <Box
-                position="absolute"
-                top={0}
-                right={0}
-                height="100vh"
-                width={150}
-                backgroundColor="white"
-                boxShadow="base"
-                padding={4}
-            >
-                <VStack>
-                    {data.map((item) => (
-                        <Text key={item.Rnumber}>{item.Rnumber}</Text>
-                    ))}
-                </VStack>
-            </Box>
-        </Flex>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div className="absolute top-0 right-0 h-full w-40 bg-white shadow-lg p-4 z-10">
+                <div className="space-y-4">
+                    {Array.isArray(data) ? (
+                        data.map((item) => (
+                            <div
+                                key={item.Rnumber}
+                                className="text-gray-700 text-md"
+                            >
+                                {item.Rnumber}
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-gray-500 text-md">
+                            No data available
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }
 

@@ -16,108 +16,101 @@ app.use(urlencoded({ extended: false }));
 app.use(json());
 
 app.post("/send-data", async (req, res) => {
-  const data = req.body;
-  console.log(data);
-  slotTime = data.slotTime;
-  distance = data.distance;
-  duration = data.duration;
-  decideFactor = slotTime + distance + duration;
-  res.json({ message: "Form data received successfully!" });
-  const insertCmpVals =
-    "INSERT INTO cmpVals (Rnumber, decideFactor, station, vehicleType) VALUES (?, ?, ?, ?)";
-  const insertFinalTable =
-    "INSERT INTO finalTable (rnumber, slotTime, duration,distance,station,decideFactor,vehicleType) VALUES (?, ?, ?, ?, ?, ?, ?)";
-  supabase(
-    insertCmpVals,
-    [data.rnumber, decideFactor, data.station, data.vehicleType],
-    (err, result) => {
-      if (err) {
+    const data = req.body;
+    console.log(data);
+    slotTime = data.slotTime;
+    distance = data.distance;
+    duration = data.duration;
+    decideFactor = slotTime + distance + duration;
+
+    // Insert data into Supabase
+    const { error } = await supabase.from("cmpVals").insert([
+        {
+            Rnumber: data.Rnumber,
+            decideFactor,
+            station: data.station,
+            vehicleType: data.vehicleType,
+        },
+    ]);
+
+    if (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Failed to insert data" });
+    }
+
+    res.json({ message: "Form data received successfully!" });
+});
+
+app.get("/get-data", async (req, res) => {
+    const { data, error } = await supabase.from("cmpVals").select("*");
+
+    if (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Failed to fetch data" });
+    }
+
+    res.json(data);
+});
+
+app.post("/delete-data", async (req, res) => {
+    const deleteVehicleData = req.body;
+
+    // Delete from cmpVals
+    const { error: deleteError } = await supabase
+        .from("cmpVals")
+        .delete()
+        .eq("Rnumber", deleteVehicleData.rnumber);
+
+    if (deleteError) {
+        console.error(deleteError);
+        return res
+            .status(500)
+            .json({ error: "Failed to delete data from cmpVals" });
+    }
+
+    // Insert into dropedEntries
+    const { error: insertError } = await supabase
+        .from("dropedEntries")
+        .insert([{ Rnumber: deleteVehicleData.rnumber }]);
+
+    if (insertError) {
+        console.error(insertError);
+        return res
+            .status(500)
+            .json({ error: "Failed to insert data into dropedEntries" });
+    }
+
+    res.json({ message: "Data deleted and inserted successfully!" });
+});
+
+app.post("/send-email", async (req, res) => {
+    const data = req.body;
+    const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+            user: "evcharge4@gmail.com",
+            pass: "evcharge@123",
+        },
+    });
+    const mailOptions = {
+        from: "evcharge4@gmail.com",
+        to: data.email,
+        subject: "Your EV Charge Slot has been booked",
+        text: `Your EV Charge Slot has been booked at ${data.station} for ${data.slotTime} minutes. Your vehicle number is ${data.rnumber}`,
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Message sent: %s", info.messageId);
+        res.status(200).send("Email sent successfully");
+    } catch (err) {
         console.log(err);
-      } else {
-        console.log("Data inserted into cmpVals");
-      }
+        res.status(500).send("Failed to send email");
     }
-  );
-  supabase(
-    insertFinalTable,
-    [
-      data.rnumber,
-      slotTime,
-      duration,
-      distance,
-      data.station,
-      decideFactor,
-      data.vehicleType,
-    ],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log("Data inserted into finalTable");
-      }
-    }
-  );
 });
-
-app.get("/get-data", (req, res) => {
-  supabase("SELECT * FROM cmpVals ORDER BY decideFactor", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(result);
-      res.json(result);
-    }
-  });
-});
-
-app.post("/delete-data", (req, res) => {
-  const dropedEntries = "INSERT INTO dropedEntries(Rnumber) VALUES (?)";
-  const deleteVehicle = "DELETE FROM cmpVals WHERE Rnumber = ?";
-  const deleteVehicleData = req.body;
-  supabase(deleteVehicle, [deleteVehicleData.rnumber], (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("Vehicle data deleted from cmpVals");
-    }
-  });
-  supabase(dropedEntries, [deleteVehicleData.rnumber], (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("Vehicle data inserted into dropedEntries");
-    }
-  });
-});
-
-// app.post("/send-email", async (req, res) => {
-//     const data = req.body;
-//     const transporter = nodemailer.createTransport({
-//         host: "smtp.gmail.com",
-//         port: 587,
-//         secure: false,
-//         auth: {
-//             user: "evcharge4@gmail.com",
-//             pass: "evcharge@123",
-//         },
-//     });
-//     const mailOptions = {
-//         from: "evcharge4@gmail.com",
-//         to: data.email,
-//         subject: "Your EV Charge Slot has been booked",
-//         text: `Your EV Charge Slot has been booked at ${data.station} for ${data.slotTime} minutes. Your vehicle number is ${data.rnumber}`,
-//     };
-
-//     try {
-//         const info = await transporter.sendMail(mailOptions);
-//         console.log("Message sent: %s", info.messageId);
-//         res.status(200).send("Email sent successfully");
-//     } catch (err) {
-//         console.log(err);
-//         res.status(500).send("Failed to send email");
-//     }
-// });
 
 app.listen(4000, () => {
-  console.log("Server started on port 4000");
+    console.log("Server started on port 4000");
 });
